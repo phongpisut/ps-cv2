@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Phongpisut Meemuk – React & React Native developer in Bangkok" />
+    <meta name="theme-color" content="#f1ece2" />
+    <title>Phongpisut Meemuk – React Native Developer</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+    <script>
+      // Set theme before first paint (no flash).
+      var t = new URLSearchParams(location.search).get('theme'); try { t = t || localStorage.getItem('theme') } catch (e) {}
+      document.documentElement.dataset.theme = t || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    </script>
+    <style>
+      :root, [data-theme="light"] {
+        --bg: #efe9de; --sheet: #faf7f1; --sheet2: #f5f0e6; --ink: #1d1b18; --muted: #5f584e; --faint: #958c7e;
+        --line: #ddd4c4; --accent: #d9502a; --accent-ink: #fff8f0; --chip: #ebe3d4; --sage: #5c8a5a;
+        --shadow: 0 1px 1px rgba(60,40,10,.05), 0 6px 18px -6px rgba(60,40,10,.14);
+        --shadow-hi: 0 2px 2px rgba(60,40,10,.05), 0 22px 40px -14px rgba(60,40,10,.28);
+        --dot: rgba(70,55,30,.13); --grain: .05;
+      }
+      [data-theme="dark"] {
+        --bg: #181715; --sheet: #22201d; --sheet2: #1e1c1a; --ink: #ebe4d7; --muted: #aca292; --faint: #7e7569;
+        --line: #35312b; --accent: #f0794d; --accent-ink: #1b120d; --chip: #2d2a25; --sage: #93b88a;
+        --shadow: 0 1px 1px rgba(0,0,0,.3), 0 8px 20px -8px rgba(0,0,0,.6);
+        --shadow-hi: 0 2px 2px rgba(0,0,0,.3), 0 26px 44px -16px rgba(0,0,0,.75);
+        --dot: rgba(235,228,215,.06); --grain: .07;
+      }
+      html, body, #root { height: 100%; margin: 0; overflow-x: hidden; }
+      body { /* dotted grid paper */
+        background-color: var(--bg); transition: background-color .4s ease;
+        background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 22px 22px;
+      }
+      body::after { /* paper grain */
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: var(--grain);
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .3  0 0 0 0 .2  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      }
+      ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+      * { scrollbar-color: var(--line) transparent; }
+
+      /* ---------- motion ---------- */
+      .rise { animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
+      @keyframes rise { from { opacity: 0; transform: translateY(28px); filter: blur(6px); } }
+      .reveal { display: flex; flex-direction: column; transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); }
+      .js .reveal:not(.in) { opacity: 0; transform: translateY(36px) rotate(-.6deg); }
+      .float { animation: float 7s ease-in-out infinite; }
+      @keyframes float { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-12px) rotate(-1.5deg); } }
+      .stamp { animation: stamp .7s cubic-bezier(.3,1.6,.5,1) 1.6s both; }
+      @keyframes stamp { from { opacity: 0; transform: scale(1.6) rotate(-14deg); } to { opacity: .92; transform: scale(1) rotate(-8deg); } }
+      .marquee { display: flex; width: max-content; animation: marquee 40s linear infinite; }
+      .marquee.rev { animation-direction: reverse; animation-duration: 48s; }
+      .marquee-wrap:hover .marquee { animation-play-state: paused; }
+      @keyframes marquee { to { transform: translateX(-50%); } }
+      .live-dot { animation: pulse 1.6s ease-in-out infinite; }
+      @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sage) 60%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } }
+      .underline { background: linear-gradient(var(--accent), var(--accent)) no-repeat 0 92% / 0 2px; transition: background-size .35s ease; }
+      .underline:hover { background-size: 100% 2px; }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .js .reveal:not(.in) { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
