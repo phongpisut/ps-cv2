@@ -99,7 +99,7 @@ function Nav({ wide, theme, toggle }: { wide: boolean; theme: Theme; toggle: () 
           ))}
           <Pressable onPress={toggle} accessibilityLabel="Toggle light / dark"
             style={({ hovered }: HoverState) => ({ width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: hovered ? c.chip : 'transparent', transitionDuration: '150ms' } as object)}>
-            <Text style={{ fontSize: 15 }}>{theme === 'dark' ? '☀︎' : '☾'}</Text>
+            <Text style={{ fontSize: 16, color: c.ink }}>{theme === 'dark' ? '☀︎' : '☾'}</Text>
           </Pressable>
         </View>
       </Css>
