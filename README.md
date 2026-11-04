@@ -17,3 +17,7 @@ npm run icons      # fetch App Store icons into public/icons (needs internet; ch
 ## Design
 - Light "paper" / dark "night paper" themes via CSS variables (`index.html`), toggle in the nav, `?theme=light|dark` to force.
 - Motion: CSS entrance (`.rise`), scroll reveals (`src/motion.tsx`), Web-Animations fingerprint draw-on, marquee, hover lifts. All respect `prefers-reduced-motion`.
+
+## Deploy
+Every push to `main` builds the site and publishes `dist/` to the `gh-pages` branch (`.github/workflows/deploy.yml`).
+Live at **https://phongpisut.github.io/ps-cv2/** (Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root).
