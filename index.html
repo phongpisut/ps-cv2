@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Phongpisut Meemuk – React & React Native developer in Bangkok" />
+    <meta name="description" content="Phongpisut Meemuk – personal CV of a React & React Native developer in Bangkok" />
     <meta name="theme-color" content="#f1ece2" />
-    <title>Phongpisut Meemuk – React Native Developer</title>
+    <title>Phongpisut Meemuk – CV</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,12 +59,32 @@
       @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sage) 60%, transparent); } 70% { box-shadow: 0 0 0 7px transparent; } }
       .underline { background: linear-gradient(var(--accent), var(--accent)) no-repeat 0 92% / 0 2px; transition: background-size .35s ease; }
       .underline:hover { background-size: 100% 2px; }
+      /* headings: words slide up through a mask */
+      .wmask { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
+      .wmask .w { display: inline-block; transition: transform .9s cubic-bezier(.2,.8,.2,1), opacity .9s ease; }
+      .js .reveal:not(.in) .w { transform: translateY(105%); opacity: 0; }
+      /* scroll progress bar + timeline line, driven by --p */
+      .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 30; background: var(--accent); transform-origin: 0 50%; transform: scaleX(var(--p, 0)); }
+      .tl-line { position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--line); }
+      .tl-line::after { content: ""; position: absolute; inset: 0; background: var(--accent); transform-origin: 50% 0; transform: scaleY(var(--p, 0)); transition: transform .15s linear; }
+      .tl-dot { transition: transform .5s cubic-bezier(.3,1.6,.5,1), background-color .4s ease; }
+      .js .reveal:not(.in) .tl-dot { transform: scale(0); }
+      /* 3D tilt with a soft light spot */
+      .tilt { transition: transform .5s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; will-change: transform; position: relative; }
+      .tilt::after { content: ""; position: absolute; inset: 0; border-radius: 18px; pointer-events: none; opacity: 0; transition: opacity .3s;
+        background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 50%), color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%); }
+      .tilt:hover { transition: transform .12s linear; }
+      .tilt:hover::after { opacity: 1; }
+      /* hero hint */
+      .nudge { animation: nudge 2.6s ease-in-out 2.2s infinite; }
+      @keyframes nudge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
       @media (prefers-reduced-motion: reduce) {
+        .js .reveal:not(.in) .w, .js .reveal:not(.in) .tl-dot { transform: none; opacity: 1; }
         *, *::before, *::after { animation: none !important; transition: none !important; }
         .js .reveal:not(.in) { opacity: 1; transform: none; }
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-oHKUVGoB.js"></script>
+    <script type="module" crossorigin src="./assets/index-D5LaUke8.js"></script>
   </head>
   <body>
     <div id="root"></div>
