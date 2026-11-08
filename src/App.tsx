@@ -3,9 +3,12 @@ import { View, Text, ScrollView, Image, Linking, Pressable, useWindowDimensions 
 import { c, font, serif, mono, initialTheme, applyTheme, type Theme } from './theme'
 import Fingerprint from './Fingerprint'
 import MelonMerge, { TIERS, visitorFruit } from './MelonMerge'
-import { Rise, Reveal, Css } from './motion'
+import { Rise, Reveal, Css, Words, CountUp, Tilt, useScrollFx } from './motion'
+import SkillField, { Obstacle, NameSlot } from './SkillField'
 import { useRoom, type Room } from './live'
-import { profile, webProjects, appProjects, jobs, skills, education, internship, languages, type Project } from './data'
+import { profile, webProjects, appProjects, jobs, skills, education, internship, languages, traits, type Project } from './data'
+
+const FIELD_WORDS = Object.values(skills).flat()
 
 /* ---------- primitives ---------- */
 
@@ -69,7 +72,7 @@ function SectionHead({ id, n, title, accent, sub }: { id: string; n: string; tit
       <View nativeID={id} style={{ scrollMarginTop: 96, marginBottom: 36, gap: 10 } as object}>
         <Mono style={{ color: c.accent }}>({n})</Mono>
         <T style={{ fontSize: 46, lineHeight: 50, fontWeight: '600', letterSpacing: -1.6 }}>
-          {title} <Italic>{accent}</Italic>
+          <Words text={title} /> <Italic><Words text={accent} start={title.split(' ').length * 70} /></Italic>
         </T>
         {sub && <T style={{ color: c.muted, fontSize: 17, maxWidth: 560 }}>{sub}</T>}
       </View>
@@ -80,7 +83,7 @@ function SectionHead({ id, n, title, accent, sub }: { id: string; n: string; tit
 /* ---------- pieces ---------- */
 
 function Nav({ wide, theme, toggle }: { wide: boolean; theme: Theme; toggle: () => void }) {
-  const all: [string, string][] = [['About', 'about'], ['Work', 'work'], ['Play', 'play'], ['Experience', 'experience'], ['Skills', 'skills']]
+  const all: [string, string][] = [['About', 'about'], ['Contributions', 'work'], ['Play', 'play'], ['Journey', 'experience'], ['Skills', 'skills']]
   const links = wide ? all : all.filter(([, id]) => ['work', 'play'].includes(id))
   return (
     <View style={{ position: 'fixed', top: 14, left: 0, right: 0, zIndex: 20, alignItems: 'center', pointerEvents: 'box-none' } as object}>
@@ -108,13 +111,13 @@ function Nav({ wide, theme, toggle }: { wide: boolean; theme: Theme; toggle: () 
 }
 
 function IdCard({ wide }: { wide: boolean }) {
-  const rows: [string, string][] = [['Role', 'React · React Native'], ['Based', 'Bangkok, TH'], ['Since', '2021'], ['Mode', 'Contract / Adventure']]
+  const rows: [string, string][] = [['Role', 'React · React Native'], ['Based', 'Bangkok, TH'], ['Coding since', '2021'], ['Looking for', 'Next adventure']]
   return (
     <Css cls="float" style={{ width: wide ? 360 : 300 }}>
       <Sheet hover={false} tape style={{ padding: 0, overflow: 'visible' }}>
         <View style={{ padding: 22, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: c.line, borderStyle: 'dashed', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Mono>Developer pass</Mono>
-          <Mono style={{ color: c.accent }}>No. 0427</Mono>
+          <Mono>Curriculum vitae</Mono>
+          <Mono style={{ color: c.accent }}>Vol. 2026</Mono>
         </View>
         <View style={{ flexDirection: 'row', gap: 18, padding: 22, alignItems: 'center' }}>
           <View style={{ width: 112, height: 132, borderRadius: 12, backgroundColor: c.sheet2, borderWidth: 1, borderColor: c.line, alignItems: 'center', justifyContent: 'center' }}>
@@ -182,18 +185,20 @@ const TILTS = [-1.2, 0.9, -0.6, 1.1, -0.9, 0.7]
 function ProjectCard({ p, i, kind }: { p: Project; i: number; kind: string }) {
   return (
     <Reveal delay={(i % 3) * 90} style={{ flexGrow: 1, flexBasis: 300 }}>
+      <Tilt style={{ flexGrow: 1 }}>
       <Sheet tilt={TILTS[i % TILTS.length]} tape={i % 2 === 0} style={{ gap: 16, flexGrow: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <Icon p={p} />
           <View style={{ flex: 1 }}>
             <T style={{ fontSize: 21, lineHeight: 26, fontWeight: '600', letterSpacing: -0.5 }}>{p.name}</T>
-            <T style={{ color: c.muted, fontSize: 13, lineHeight: 19 }}>{p.client}</T>
+            <T style={{ color: c.muted, fontSize: 13, lineHeight: 19 }}>with {p.client}</T>
           </View>
           <Mono style={{ fontSize: 10 }}>{kind}</Mono>
         </View>
         <T style={{ fontSize: 15, lineHeight: 24, color: c.muted }}>{p.text}</T>
         <Tags items={p.tags} />
       </Sheet>
+      </Tilt>
     </Reveal>
   )
 }
@@ -254,60 +259,73 @@ export default function App() {
   const wide = width > 820
   const [theme, setTheme] = useState<Theme>(initialTheme)
   useEffect(() => applyTheme(theme), [theme])
+  useScrollFx()
   const [mine] = useState(visitorFruit)
   const [game, setGame] = useState({ score: 0, best: 0 })
   const live = useRoom({ fruit: mine, ...game })
   const [first, last] = profile.name.split(' ')
-  const allSkills = Object.values(skills).flat()
-  const half = Math.ceil(allSkills.length / 2)
+  const nameSize = wide ? 124 : 66
 
   return (
+    <View style={{ flex: 1 }}>
+    {createElement('div', { className: 'progress', 'data-scroll-progress': 'page' })}
+    <Nav wide={wide} theme={theme} toggle={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
     <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={{ alignItems: 'center' }}>
-      <Nav wide={wide} theme={theme} toggle={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
 
-      {/* ---------- hero ---------- */}
-      <View nativeID="top" style={{ width: '100%', maxWidth: 1120, paddingHorizontal: 20, paddingTop: wide ? 150 : 110, paddingBottom: 70, flexDirection: wide ? 'row' : 'column', alignItems: 'center', gap: wide ? 40 : 56 }}>
-        <View style={{ flex: wide ? 1 : undefined, alignSelf: 'stretch' }}>
-          <Rise delay={100}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: c.sheet, borderWidth: 1, borderColor: c.line, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 6, boxShadow: c.shadow } as object}>
-              {createElement('span', { className: 'live-dot', style: { width: 7, height: 7, borderRadius: 4, background: 'var(--sage)' } })}
-              <Mono style={{ fontSize: 11, color: c.muted }}>Open to new adventures · {profile.location}</Mono>
+      {/* ---------- hero: my name among my skills (Pretext) ---------- */}
+      <SkillField words={FIELD_WORDS} first={first} last={last + '.'} nameSize={nameSize} style={{ minHeight: wide ? 860 : 780 }}>
+        <View nativeID="top" style={{ width: '100%', maxWidth: 1120, paddingHorizontal: 20, paddingTop: wide ? 140 : 100, paddingBottom: 80, flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'stretch', gap: wide ? 40 : 36 }}>
+          <View style={{ flex: wide ? 1 : undefined }}>
+            <Rise delay={100}>
+              <Obstacle pad={10}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.sheet, borderWidth: 1, borderColor: c.line, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 6, boxShadow: c.shadow } as object}>
+                  {createElement('span', { className: 'live-dot', style: { width: 7, height: 7, borderRadius: 4, background: 'var(--sage)' } })}
+                  <Mono style={{ fontSize: 11, color: c.muted }}>Hi, I'm · open to new adventures</Mono>
+                </View>
+              </Obstacle>
+            </Rise>
+            <View style={{ marginTop: 18 }}>
+              <NameSlot height={Math.ceil(nameSize * 2.05)} label={profile.name} />
             </View>
-          </Rise>
-          <Rise delay={220}>
-            <T style={{ fontSize: wide ? 104 : 60, lineHeight: wide ? 100 : 60, fontWeight: '700', letterSpacing: wide ? -5 : -2.6, marginTop: 28 }}>{first}</T>
-          </Rise>
-          <Rise delay={340}>
-            <T style={{ fontSize: wide ? 112 : 64, lineHeight: wide ? 108 : 64, fontFamily: serif, fontStyle: 'italic', color: c.accent, letterSpacing: -1.5 }}>{last}.</T>
-          </Rise>
-          <Rise delay={480}>
-            <T style={{ color: c.muted, fontSize: wide ? 21 : 18, lineHeight: wide ? 32 : 28, marginTop: 26, maxWidth: 500 }}>
-              React & React Native developer crafting <Text style={{ color: c.ink, fontWeight: '600' }}>smooth, high‑performance</Text> apps for banking, trading and insurance.
-            </T>
-          </Rise>
-          <Rise delay={600}>
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 34, flexWrap: 'wrap' }}>
-              <Button primary label="Get in touch" icon="↗" onPress={() => Linking.openURL(`mailto:${profile.email}`)} />
-              <Button label="See my work" icon="↓" onPress={() => go('work')} />
-            </View>
+            <Rise delay={480}>
+              <Obstacle style={{ maxWidth: 500, marginTop: 14 }}>
+                <T style={{ color: c.muted, fontSize: wide ? 21 : 18, lineHeight: wide ? 32 : 28 }}>
+                  A React & React Native developer from {profile.location.split(',')[0]}. Since 2021 I've <Text style={{ color: c.ink, fontWeight: '600' }}>contributed</Text> to banking, trading and insurance apps — mostly the smooth, animated parts.
+                </T>
+              </Obstacle>
+            </Rise>
+            <Rise delay={600}>
+              <Obstacle pad={12} style={{ marginTop: 30 }}>
+                <View style={{ flexDirection: 'row', gap: 12, flexWrap: 'wrap' }}>
+                  <Button primary label="Email me" icon="↗" onPress={() => Linking.openURL(`mailto:${profile.email}`)} />
+                  <Button label="Read my CV" icon="↓" onPress={() => go('about')} />
+                </View>
+              </Obstacle>
+            </Rise>
+            <Rise delay={900}>
+              <Obstacle pad={6} style={{ marginTop: 22 }}>
+                <Css cls="nudge"><Mono style={{ fontSize: 11 }}>{wide ? '↖ drag my name · move your cursor through the text' : '↖ drag my name sideways'}</Mono></Css>
+              </Obstacle>
+            </Rise>
+          </View>
+          <Rise delay={400} style={{ alignItems: 'center' }}>
+            <Obstacle pad={18} style={{ alignSelf: 'center' }}>
+              <IdCard wide={wide} />
+            </Obstacle>
           </Rise>
         </View>
-        <Rise delay={400}>
-          <IdCard wide={wide} />
-        </Rise>
-      </View>
+      </SkillField>
 
-      {/* ---------- marquee strip ---------- */}
+      {/* ---------- marquee strip: a few things about me ---------- */}
       <View style={{ width: '100%', paddingVertical: 18, gap: 4, borderTopWidth: 1, borderBottomWidth: 1, borderColor: c.line, backgroundColor: c.sheet, transform: [{ rotate: '-1deg' }], boxShadow: c.shadow, marginVertical: 30 } as object}>
-        <Marquee items={allSkills.slice(0, half)} />
-        <Marquee items={allSkills.slice(half)} rev />
+        <Marquee items={traits} />
       </View>
 
       <View style={{ width: '100%', maxWidth: 1120, paddingHorizontal: 20, paddingBottom: 40 }}>
 
         {/* ---------- about ---------- */}
         <View style={{ marginTop: 90 }}>
-          <SectionHead id="about" n="01" title="Front‑end dev," accent="with a twist." />
+          <SectionHead id="about" n="01" title="A bit" accent="about me." />
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 40 }}>
             <Reveal style={{ flex: 1.2 }}>
               <T style={{ fontFamily: serif, fontSize: wide ? 40 : 30, lineHeight: wide ? 48 : 38, letterSpacing: -0.4 }}>
@@ -317,9 +335,9 @@ export default function App() {
             <Reveal delay={120} style={{ flex: 1, gap: 18 }}>
               {profile.bio.map((p) => <T key={p} style={{ fontSize: 17, lineHeight: 28, color: c.muted }}>{p}</T>)}
               <View style={{ flexDirection: 'row', gap: 28, marginTop: 10, flexWrap: 'wrap' }}>
-                {[['5+', 'years shipping'], ['8', 'teams & clients'], ['10+', 'repos in one Nx MFE']].map(([a, b]) => (
+                {[['5+', 'years contributing'], ['8', 'teams joined'], ['10+', 'repos in one Nx MFE']].map(([a, b]) => (
                   <View key={b}>
-                    <T style={{ fontSize: 40, lineHeight: 44, fontWeight: '600', letterSpacing: -1.5 }}>{a}</T>
+                    <T style={{ fontSize: 40, lineHeight: 44, fontWeight: '600', letterSpacing: -1.5 }}><CountUp value={a} /></T>
                     <Mono style={{ fontSize: 10.5 }}>{b}</Mono>
                   </View>
                 ))}
@@ -328,9 +346,9 @@ export default function App() {
           </View>
         </View>
 
-        {/* ---------- work ---------- */}
+        {/* ---------- contributions ---------- */}
         <View style={{ marginTop: 140 }}>
-          <SectionHead id="work" n="02" title="Things I've" accent="built." sub="Mobile apps people use every day, and the web tools behind them." />
+          <SectionHead id="work" n="02" title="Projects I've" accent="contributed to." sub="I joined each of these teams as one of the developers. Here's my part in each — mobile apps people use every day, and the web tools behind them." />
           <Mono style={{ marginBottom: 20 }}>— Mobile apps</Mono>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 22 }}>
             {appProjects.map((p, i) => <ProjectCard key={p.name} p={p} i={i} kind="App" />)}
@@ -352,24 +370,29 @@ export default function App() {
           </Reveal>
         </View>
 
-        {/* ---------- experience ---------- */}
+        {/* ---------- journey (timeline) ---------- */}
         <View style={{ marginTop: 140 }}>
-          <SectionHead id="experience" n="04" title="Where I've" accent="worked." />
-          <View style={{ borderTopWidth: 1, borderTopColor: c.line }}>
+          <SectionHead id="experience" n="04" title="My" accent="journey so far." sub="Eight teams in five years — each one a new classroom." />
+          <View style={{ position: 'relative', paddingLeft: wide ? 44 : 30 }}>
+            {createElement('div', { className: 'tl-line', 'data-scroll-progress': '', style: { left: wide ? 9 : 7 } })}
             {jobs.map((j, i) => (
-              <Reveal key={j.period} delay={i * 50}>
-                <Pressable style={({ hovered }: HoverState) => ({
-                  flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'flex-start', gap: wide ? 24 : 4,
-                  paddingVertical: 22, paddingHorizontal: hovered ? 18 : 4, borderBottomWidth: 1, borderBottomColor: c.line,
-                  backgroundColor: hovered ? c.sheet : 'transparent', borderRadius: hovered ? 12 : 0, transitionDuration: '250ms',
-                } as object)}>
-                  {({ hovered }: HoverState) => (<>
-                    <Mono style={{ width: wide ? 190 : undefined, color: i === 0 ? c.accent : c.faint }}>{j.period}</Mono>
-                    <T style={{ flex: wide ? 1 : undefined, fontSize: 24, lineHeight: 30, fontWeight: '600', letterSpacing: -0.6 }}>{j.company}</T>
-                    <T style={{ fontSize: 15, color: c.muted, textAlign: wide ? 'right' : 'left' }}>{j.role}<Text style={{ color: c.faint }}>{'\n'}{j.type}</Text></T>
-                    {wide && <Text style={{ color: hovered ? c.accent : c.faint, fontSize: 20, transform: [{ translateX: hovered ? 4 : 0 }], transitionDuration: '250ms' } as object}>→</Text>}
-                  </>)}
-                </Pressable>
+              <Reveal key={j.period} delay={60}>
+                <View style={{ position: 'relative', paddingVertical: 9 }}>
+                  {createElement('span', { className: 'tl-dot', style: { position: 'absolute', left: wide ? -41 : -29, top: 32, width: 16, height: 16, borderRadius: 8, boxSizing: 'border-box', border: '2px solid var(--accent)', background: i === 0 ? 'var(--accent)' : 'var(--bg)' } })}
+                  <Pressable style={({ hovered }: HoverState) => ({
+                    flexDirection: wide ? 'row' : 'column', alignItems: wide ? 'center' : 'flex-start', gap: wide ? 24 : 4,
+                    paddingVertical: 18, paddingHorizontal: 20, borderRadius: 14, borderWidth: 1,
+                    borderColor: hovered ? c.line : 'transparent', backgroundColor: hovered ? c.sheet : 'transparent',
+                    boxShadow: hovered ? c.shadow : 'none', transform: [{ translateX: hovered ? 8 : 0 }], transitionDuration: '300ms',
+                  } as object)}>
+                    {({ hovered }: HoverState) => (<>
+                      <Mono style={{ width: wide ? 190 : undefined, color: i === 0 ? c.accent : c.faint }}>{j.period}{i === 0 ? '  · latest' : ''}</Mono>
+                      <T style={{ flex: wide ? 1 : undefined, fontSize: 24, lineHeight: 30, fontWeight: '600', letterSpacing: -0.6 }}>{j.company}</T>
+                      <T style={{ fontSize: 15, color: c.muted, textAlign: wide ? 'right' : 'left' }}>{j.role}<Text style={{ color: c.faint }}>{'\n'}{j.type}</Text></T>
+                      {wide && <Text style={{ color: hovered ? c.accent : c.faint, fontSize: 20, transform: [{ translateX: hovered ? 4 : 0 }], transitionDuration: '250ms' } as object}>→</Text>}
+                    </>)}
+                  </Pressable>
+                </View>
               </Reveal>
             ))}
           </View>
@@ -377,7 +400,7 @@ export default function App() {
 
         {/* ---------- skills ---------- */}
         <View style={{ marginTop: 140 }}>
-          <SectionHead id="skills" n="05" title="The" accent="toolbox." />
+          <SectionHead id="skills" n="05" title="My" accent="toolbox." />
           <View style={{ flexDirection: wide ? 'row' : 'column', gap: 22 }}>
             {Object.entries(skills).map(([k, v], i) => (
               <Reveal key={k} delay={i * 90} style={{ flex: 1 }}>
@@ -416,8 +439,9 @@ export default function App() {
             </View>
             <Mono style={{ color: c.accent }}>(06) Say hello</Mono>
             <T style={{ fontSize: wide ? 92 : 50, lineHeight: wide ? 92 : 52, fontWeight: '700', letterSpacing: wide ? -4 : -2, textAlign: 'center' }}>
-              Let's build{'\n'}<Italic>something smooth.</Italic>
+              <Words text="Thanks for" />{'\n'}<Italic><Words text="reading my CV." start={160} /></Italic>
             </T>
+            <T style={{ color: c.muted, fontSize: 17, textAlign: 'center', maxWidth: 460 }}>If you're looking for someone to join your team on the next adventure, I'd love to hear from you.</T>
             <Pressable onPress={() => Linking.openURL(`mailto:${profile.email}`)}>
               {createElement('span', { className: 'underline', style: { fontFamily: font, fontSize: wide ? 24 : 18, color: 'var(--ink)', paddingBottom: 4 } }, profile.email + ' ↗')}
             </Pressable>
@@ -426,9 +450,10 @@ export default function App() {
 
         <View style={{ marginTop: 30, paddingTop: 22, borderTopWidth: 1, borderTopColor: c.line, flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <Mono>© {new Date().getFullYear()} {profile.name}</Mono>
-          <Mono>React Native Web · Box2D · MoQ</Mono>
+          <Mono>Made by me · React Native Web · Pretext · Box2D · MoQ</Mono>
         </View>
       </View>
     </ScrollView>
+    </View>
   )
 }

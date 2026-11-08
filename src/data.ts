@@ -13,28 +13,28 @@ export type Project = { name: string; client: string; text: string; tags: string
 
 export const webProjects: Project[] = [
   { name: "Swensen's", client: 'Minor Food Group', emoji: '🍨',
-    text: "Food store website for Swensen's, built with Next.js (server-side rendering) and styled with Tailwind CSS.",
+    text: "Contributed to the Swensen's food-store website: server-side rendered pages in Next.js, styled with Tailwind CSS.",
     tags: ['Next.js', 'SSR', 'Tailwind CSS'] },
   { name: 'PTT Portal', client: 'PTT Digital', emoji: '🗺️',
-    text: 'Admin portal using ArcGIS.js to display a map and draw markers and routes. Nested forms with React Hook Form, data fetching optimized with React Query.',
+    text: 'Worked on an admin portal with ArcGIS.js maps (markers and routes), nested forms in React Hook Form and data fetching tuned with React Query.',
     tags: ['React', 'ArcGIS.js', 'React Hook Form', 'React Query', 'Tailwind'] },
   { name: 'Minor Fleet Management', client: 'Minor Food Group', emoji: '🚚',
-    text: 'Fleet management website built with Vue.js, alongside work on the Node.js management microservices (GraphQL worker, RabbitMQ, PostgreSQL).',
+    text: 'Contributed to the fleet-management site in Vue.js and helped on the Node.js microservices behind it (GraphQL worker, RabbitMQ, PostgreSQL).',
     tags: ['Vue.js', 'Node.js', 'GraphQL', 'RabbitMQ'] },
 ]
 
 export const appProjects: Project[] = [
   { name: 'FIN Insurance', client: 'FIN Insurance Broker', emoji: '🛡️', icon: 'icons/fin.png',
-    text: 'Insurance broker app with efficient form utilities, Reanimated gesture handling and interactive SVG graphs; paired with a real-time React + Socket.IO website.',
+    text: 'My part: form utilities, Reanimated gestures and interactive SVG graphs in the broker app, plus its real-time React + Socket.IO website.',
     tags: ['React Native', 'Reanimated', 'SVG', 'Socket.IO'] },
   { name: 'TCRB Alpha', client: 'Thai Credit Retail Bank', emoji: '🏦', icon: 'icons/tcrb.png',
-    text: 'Secure, performant mobile banking app. Redux data caching, native MLKit QR scanner, OneTrust consent management and user-flow verification.',
+    text: 'Contributed to a secure mobile banking app: Redux data caching, a native MLKit QR scanner, OneTrust consent and user-flow verification.',
     tags: ['React Native', 'TypeScript', 'Redux', 'MLKit', 'OneTrust'] },
   { name: 'Tidjai', client: 'Ngern Tid Lor (NTL)', emoji: '💚', icon: 'icons/tidjai.png',
-    text: 'High-performance UI/UX using Skia and Reanimated, with MCP-accelerated development. Integrated Omise, AppsFlyer and Crashlytics.',
+    text: 'Helped build high-performance UI with Skia and Reanimated (with MCP-accelerated development) and integrated Omise, AppsFlyer and Crashlytics.',
     tags: ['React Native', 'Skia', 'Reanimated', 'Omise', 'AppsFlyer'] },
   { name: 'InnovestX', client: 'SCB – Magic Box Solutions', emoji: '📈', icon: 'icons/innovestx.png',
-    text: 'Trading apps with smooth 60 FPS charts (Skia, Victory Native), Nx + Module Federation micro-frontends across 10+ repos, and Nitro Modules for zero-throttle JSI calls.',
+    text: 'Contributed 60 FPS trading charts (Skia, Victory Native), Nx + Module Federation micro-frontends across 10+ repos and Nitro Modules for zero-throttle JSI calls.',
     tags: ['React Native', 'Skia', 'Nx', 'Module Federation', 'Nitro Modules'] },
 ]
 
@@ -58,3 +58,6 @@ export const skills: Record<string, string[]> = {
 export const education = { degree: 'Bachelor of Science', school: 'Thai-Nichi Institute of Technology', period: '2017 – 2021', gpax: '3.46' }
 export const internship = { org: 'IBMSD – TH', project: 'NER Tagger', stack: 'React.js, FastAPI, PyThaiNLP, MongoDB' }
 export const languages = 'Thai – Native  ·  English – Fair'
+
+/** A few things about me (the marquee strip). */
+export const traits = ['Continuous learner', 'World as my classroom', 'Adventure over routine', '60 FPS or bust', 'Bangkok based', 'Thai & English', 'Pixel careful', 'Team player', 'Always trying new libraries']

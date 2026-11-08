@@ -1,6 +1,6 @@
 # ps-cv2 — Phongpisut Meemuk
 
-React Native (via react-native-web) + Vite. Melon Merge uses Box2D (planck) and MoQ (`@moq/net`, WebTransport) for live visitors.
+Personal CV site. React Native (via react-native-web) + Vite. Melon Merge uses Box2D (planck) and MoQ (`@moq/net`, WebTransport) for live visitors.
 
 ```bash
 npm install
@@ -16,7 +16,8 @@ npm run icons      # fetch App Store icons into public/icons (needs internet; ch
 
 ## Design
 - Light "paper" / dark "night paper" themes via CSS variables (`index.html`), toggle in the nav, `?theme=light|dark` to force.
-- Motion: CSS entrance (`.rise`), scroll reveals (`src/motion.tsx`), Web-Animations fingerprint draw-on, marquee, hover lifts. All respect `prefers-reduced-motion`.
+- Hero (`src/SkillField.tsx`): my skills as running text laid out with [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per line around obstacles — the name's glyph shapes, foreground cards (`<Obstacle>`), the pointer lens and a bouncing melon. Drag the name; the text reflows live.
+- Motion: CSS entrance (`.rise`), scroll reveals and word-by-word headings, count-up stats, scroll progress bar, timeline line that draws on scroll, 3D card tilt (`src/motion.tsx`), fingerprint draw-on, marquee. All respect `prefers-reduced-motion`.
 
 ## Deploy
 Every push to `main` builds the site and publishes `dist/` to the `gh-pages` branch (`.github/workflows/deploy.yml`).

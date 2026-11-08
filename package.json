@@ -10,6 +10,7 @@
     "icons": "node scripts/fetch-icons.mjs"
   },
   "dependencies": {
+    "@chenglou/pretext": "^1.0.0",
     "@moq/net": "^0.4.7",
     "@zod/mini": "^4.6.7",
     "planck": "^1.0.0",
