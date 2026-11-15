@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="./assets/index-CdDmpajw.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-Cs5T06k1.css">
+    <script type="module" crossorigin src="./assets/index-CfIjbAcG.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CgGixzjZ.css">
   </head>
   <body>
     <div class="progress" aria-hidden="true"></div>
@@ -33,14 +33,33 @@
         <canvas id="desk" aria-hidden="true"></canvas>
         <div class="loading" id="loading"><span>Setting up the desk…</span></div>
         <div class="hud">
-          <div class="desk-tip" data-show="desk">drag my name — the skills reflow around it</div>
-          <div class="scroll-hint" data-show="desk"><span>Scroll to pick up my phone</span><i>↓</i></div>
+          <div class="scroll-hint off" data-show="desk"><span>Scroll to pick up my phone</span><i>↓</i></div>
           <aside class="cap cap-left off" data-show="phone">
             <p class="eyebrow">(02) Contributions</p>
             <h2>Projects I’ve <em>contributed to.</em></h2>
             <p>I joined each of these teams as one of the developers. Keep scrolling: the phone shows my part in each.</p>
           </aside>
           <aside class="cap cap-right off" data-show="phone"><ol id="proj-list"></ol></aside>
+        </div>
+
+        <!-- landing: Pretext overlay (2D), fades out on scroll to reveal the desk -->
+        <div class="hero" id="hero">
+          <canvas id="hero-canvas" aria-hidden="true"></canvas>
+          <div class="hero-fg">
+            <div class="hero-main">
+              <div class="badge" data-obstacle="10"><span class="dot online"></span>Hi, I’m · open to new adventures</div>
+              <div class="name-slot" data-name-slot><h1 class="sr-only">Phongpisut Meemuk</h1></div>
+              <p class="tagline" data-obstacle="14">A React &amp; React Native developer from Bangkok. Since 2021 I’ve <b>contributed</b> to banking, trading and insurance apps, mostly the smooth, animated parts.</p>
+              <div class="cta" data-obstacle="12"><a class="btn primary" id="hero-mail" href="#">Email me ↗</a><a class="btn" href="#stage" data-go="desk">See my desk ↓</a></div>
+              <p class="hint" data-obstacle="6">↖ drag my name · move your cursor through the text</p>
+            </div>
+            <aside class="hero-card" data-obstacle="18">
+              <p class="eyebrow">(01) About me</p>
+              <p class="quote">“I see the world as my classroom, and knowledge is the <em>ultimate souvenir</em>.”</p>
+              <div class="nums"><div><b>5+</b><span>years</span></div><div><b>8</b><span>teams joined</span></div><div><b id="hero-count">9</b><span>projects</span></div></div>
+            </aside>
+          </div>
+          <div class="hero-scroll" data-obstacle="10"><span>Scroll to see my desk</span><i>↓</i></div>
         </div>
       </div>
     </section>
