@@ -1,4 +1,4 @@
-import{f as O,g as q}from"./index-BS9X4Ibn.js";const l=1<<17,w=6,R=`
+import{f as O,g as q}from"./index-CdDmpajw.js";const l=1<<17,w=6,R=`
 struct P { pos: vec2f, vel: vec2f, home: vec2f };
 struct U { pointer: vec2f, aspect: f32, time: f32, dt: f32, force: f32, size: f32, pad: f32 };
 `,T=R+`
