@@ -1,7 +1,7 @@
 import './style.css'
 import { Desk } from './desk/scene'
 import { startChart } from './sections/chart'
-import { profile, appProjects, webProjects, jobs, skills, education, internship, languages } from './data'
+import { profile, projects, projectGroups, jobs, skills, education, internship, languages } from './data'
 
 document.documentElement.classList.add('js')
 const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T
@@ -11,8 +11,7 @@ $('#year').textContent = String(new Date().getFullYear())
 const mail = $<HTMLAnchorElement>('#mail')
 mail.href = `mailto:${profile.email}`; mail.textContent = profile.email + ' ↗'
 
-const projects = [...appProjects, ...webProjects]
-$('#proj-list').innerHTML = projects.map((p) => `<li><div><b>${p.name}</b><br><span>${p.client}</span></div></li>`).join('')
+$('#proj-list').innerHTML = projectGroups.map((g) => `<li data-n="${g.n}"><div><b>${g.names.join(' & ')}</b><br><span>${g.client}</span></div></li>`).join('')
 $('#cv-text').innerHTML = `
   <h1>${profile.name}</h1><p>${profile.title}, ${profile.location}. ${profile.email}</p>
   ${profile.bio.map((b) => `<p>${b}</p>`).join('')}
@@ -58,7 +57,7 @@ desk.onFrame = ({ phase, active }) => {
     lastPhase = phase
     for (const el of shows) el.classList.toggle('off', el.dataset.show !== phase)
   }
-  if (active !== lastActive) { lastActive = active; items.forEach((li, i) => li.classList.toggle('on', i === active)) }
+  if (active !== lastActive) { lastActive = active; items.forEach((li) => li.classList.toggle('on', Number(li.dataset.n) === active)) }
 }
 const stageProgress = () => {
   const r = stage.getBoundingClientRect()
@@ -93,7 +92,7 @@ function onScroll() {
   const s = stageProgress()
   desk.setProgress(s)
   const here = s < 0.06 ? 'top' : s <= 1 ? 'projects'
-    : ['contact', 'webgpu', 'physics', 'optimize'].find((id) => $('#' + id).getBoundingClientRect().top < innerHeight * 0.45) ?? 'projects'
+    : ['contact', 'webgpu', 'physics', 'optimize', 'play'].find((id) => $('#' + id).getBoundingClientRect().top < innerHeight * 0.45) ?? 'projects'
   navLinks.forEach((a) => a.classList.toggle('on', a.dataset.go === here))
 }
 addEventListener('scroll', onScroll, { passive: true })
@@ -154,3 +153,35 @@ whenVisible($('#gpu-canvas'), async () => {
     console.warn(err)
   }
 }, () => { gpuVisible = false; gpu?.stop() })
+
+/* ---------- play: shared fruit drop over MoQ ---------- */
+let melonStarted = false
+let melon: { start(): void; stop(): void } | null = null
+whenVisible($('#melon'), async () => {
+  if (melon) return melon.start()
+  if (melonStarted) return
+  melonStarted = true
+  const [{ Room }, { startMelon, TIERS, visitorFruit }] = await Promise.all([import('./game/room'), import('./game/melon')])
+  const mine = visitorFruit()
+  const room = new Room({ fruit: mine, score: 0, best: 0 })
+  $('#m-mine').textContent = TIERS[mine].e
+  $('#m-tiers').innerHTML = TIERS.map((t, i) => `<span class="${i === mine ? 'mine' : ''}">${t.e}</span>`).join('<i>›</i>')
+  const esc = (x: string) => x.replace(/[^\w]/g, '')
+  const render = () => {
+    const others = Object.entries(room.peers)
+    $('#m-dot').className = 'dot ' + (room.status === 'online' ? 'online' : room.status === 'error' ? 'error' : '')
+    $('#m-status').textContent = room.status === 'error' ? 'Offline · needs WebTransport' : room.status === 'connecting' ? 'Connecting to the MoQ relay…' : `Live · ${others.length + 1} here now`
+    $('#m-host').textContent = room.isHost && others.length ? '· 👑 running the physics' : ''
+    $('#m-peers').innerHTML = others.length === 0
+      ? '<li class="empty">No one else here yet. Open this page in another tab, or send it to a friend.</li>'
+      : others.slice(0, 8).map(([id, p]) => `<li><div>${TIERS[p.fruit]?.e ?? '🍒'} visitor <span>${esc(id).slice(0, 4)}</span>${id === room.hostId ? ' 👑' : ''}</div><span>${p.score} / ${p.best}</span></li>`).join('')
+    if (room.feed.length) $('#m-feed').innerHTML = room.feed.map((f) => `<li>${TIERS[f.who].e} ${f.self ? 'You' : 'Someone'} made ${TIERS[f.tier].e}</li>`).join('')
+  }
+  room.onChange = render
+  render()
+  room.start()
+  melon = startMelon($<HTMLCanvasElement>('#melon'), room, {
+    score: $('#m-score'), best: $('#m-best'), next: $('#m-next'), over: $('#m-over'), overScore: $('#m-over-score'), again: $('#m-again'),
+  })
+  melon.start()
+}, () => { /* keep simulating: other visitors may depend on this tab */ }, '300px')

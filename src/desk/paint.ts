@@ -112,21 +112,6 @@ export function indexCard() {
   return cv
 }
 
-export function sticky(text: string, color: string, seed: number) {
-  const S = 512
-  const [cv, g] = canvas(S, S)
-  paperGrain(g, S, S, color, seed, 0.05)
-  const grad = g.createLinearGradient(0, 0, 0, S); grad.addColorStop(0, 'rgba(0,0,0,.06)'); grad.addColorStop(0.18, 'rgba(0,0,0,0)')
-  g.fillStyle = grad; g.fillRect(0, 0, S, S)
-  g.fillStyle = '#2b2520'; g.font = `italic 74px ${SERIF}`; g.textAlign = 'center'
-  const words = text.split(' '); const lines: string[] = []
-  let cur = ''
-  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > 420 && cur) { lines.push(cur); cur = w } else cur = t }
-  lines.push(cur)
-  lines.forEach((l, i) => g.fillText(l, S / 2, S / 2 - (lines.length - 1) * 40 + i * 80 + 24))
-  return cv
-}
-
 function fingerprint(g: CanvasRenderingContext2D, cx: number, cy: number, s: number, color: string) {
   g.strokeStyle = color; g.lineWidth = s * 0.035; g.lineCap = 'round'
   for (let i = 1; i <= 9; i++) {

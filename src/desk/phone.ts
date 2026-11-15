@@ -1,5 +1,5 @@
 import { prepareWithSegments, layoutWithLines } from '@chenglou/pretext'
-import { appProjects, webProjects, type Project } from '../data'
+import { projects, type Project } from '../data'
 import { C, SANS, SERIF, MONO, canvas, roundRect } from './paint'
 
 /*
@@ -12,7 +12,9 @@ const R = 96 // screen corner radius
 const PAD = 44
 const TOP = 330 // list starts below the large title
 
-type Card = { p: Project; kind: string; y: number; h: number; lines: string[]; tagRows: string[][]; section?: string }
+type Card = { p: Project; y: number; h: number; title: string[]; lines: string[]; tagRows: string[][] }
+const TITLE_FONT = `600 44px ${SANS}`, TITLE_LH = 50
+const TITLE_W = SCREEN_W - PAD * 2 - 32 - 150 - 130 // card width − padding − icon − the "05 · WEB" label
 
 export class PhoneScreen {
   readonly canvas: HTMLCanvasElement
@@ -20,6 +22,8 @@ export class PhoneScreen {
   private cards: Card[] = []
   private contentH = 0
   active = 0
+  /** Workplace number of the card in the middle of the screen. */
+  get activeN() { return this.cards[this.active]?.p.n ?? 1 }
 
   constructor() { [this.canvas, this.g] = canvas(SCREEN_W, SCREEN_H) }
 
@@ -28,13 +32,10 @@ export class PhoneScreen {
     const inner = SCREEN_W - PAD * 2 - 64
     const textFont = `400 30px ${SANS}`
     let y = TOP
-    const list: [Project, string, string?][] = [
-      ...appProjects.map((p, i) => [p, 'APP', i === 0 ? 'MOBILE APPS' : undefined] as [Project, string, string?]),
-      ...webProjects.map((p, i) => [p, 'WEB', i === 0 ? 'WEB' : undefined] as [Project, string, string?]),
-    ]
-    this.cards = list.map(([p, kind, section]) => {
-      if (section) y += 64
+    this.cards = projects.map((p, i) => {
+      if (i > 0 && p.n !== projects[i - 1].n) y += 18 // a little air between workplaces
       const lines = layoutWithLines(prepareWithSegments(p.text, textFont), inner, 44).lines.map((l) => l.text)
+      const title = layoutWithLines(prepareWithSegments(p.name, TITLE_FONT), TITLE_W, TITLE_LH).lines.map((l) => l.text)
       g.font = `500 22px ${MONO}`
       const tagRows: string[][] = [[]]; let rowW = 0
       for (const t of p.tags) {
@@ -42,8 +43,9 @@ export class PhoneScreen {
         if (rowW + w > inner && rowW > 0) { tagRows.push([]); rowW = 0 }
         tagRows[tagRows.length - 1].push(t); rowW += w + 12
       }
-      const h = 32 + 120 + 30 + 34 + lines.length * 44 + 22 + tagRows.length * 52 + 26
-      const card: Card = { p, kind, y, h, lines, tagRows, section }
+      const head = Math.max(120, 10 + title.length * TITLE_LH + 44)
+      const h = 32 + head + 30 + 34 + lines.length * 44 + 22 + tagRows.length * 52 + 26
+      const card: Card = { p, y, h, title, lines, tagRows }
       y += h + 28
       return card
     })
@@ -106,7 +108,7 @@ export class PhoneScreen {
     g.fillStyle = '#fff'; g.font = `700 44px ${SANS}`; g.fillText('PM', 122, 1282)
     g.textAlign = 'left'; g.fillStyle = C.ink; g.font = `600 36px ${SANS}`; g.fillText('Contributions', 196, 1252)
     g.fillStyle = C.muted; g.font = `400 30px ${SANS}`
-    g.fillText(`${appProjects.length + webProjects.length} projects I’ve contributed to`, 196, 1298)
+    g.fillText(`${projects.length} projects I’ve contributed to`, 196, 1298)
     g.fillStyle = C.faint; g.font = `400 26px ${SANS}`; g.fillText('Scroll to open ↓', 196, 1340)
     g.textAlign = 'right'; g.fillText('now', SCREEN_W - 74, 1252); g.textAlign = 'left'
   }
@@ -127,7 +129,6 @@ export class PhoneScreen {
     g.fillStyle = C.faint; g.font = `500 24px ${MONO}`; g.fillText('(02) MY CV', PAD, 190)
     g.fillStyle = C.ink; g.font = `700 76px ${SANS}`; g.fillText('Contributions', PAD, 272)
     for (const [i, c] of this.cards.entries()) {
-      if (c.section) { g.fillStyle = C.faint; g.font = `500 24px ${MONO}`; g.fillText('— ' + c.section, PAD, c.y - 24) }
       if (c.y - off > SCREEN_H || c.y + c.h - off < 0) continue
       this.drawCard(c, i === best)
     }
@@ -155,10 +156,11 @@ export class PhoneScreen {
     let y = c.y + 32
     roundRect(g, ix, y, 120, 120, 30); g.fillStyle = C.paper2; g.fill()
     g.font = `66px system-ui, "Apple Color Emoji", "Segoe UI Emoji"`; g.textAlign = 'center'; g.fillText(c.p.emoji, ix + 60, y + 84); g.textAlign = 'left'
-    g.fillStyle = C.ink; g.font = `600 46px ${SANS}`; g.fillText(c.p.name, ix + 150, y + 54)
-    g.fillStyle = C.muted; g.font = `400 28px ${SANS}`; g.fillText('with ' + c.p.client, ix + 150, y + 98)
-    g.fillStyle = C.faint; g.font = `500 22px ${MONO}`; g.textAlign = 'right'; g.fillText(c.kind, x + w - 32, y + 30); g.textAlign = 'left'
-    y += 120 + 30
+    g.fillStyle = C.ink; g.font = TITLE_FONT
+    c.title.forEach((t, k) => g.fillText(t, ix + 150, y + 50 + k * TITLE_LH))
+    g.fillStyle = C.muted; g.font = `400 28px ${SANS}`; g.fillText('with ' + c.p.client, ix + 150, y + 50 + (c.title.length - 1) * TITLE_LH + 44)
+    g.fillStyle = C.faint; g.font = `500 22px ${MONO}`; g.textAlign = 'right'; g.fillText(`${String(c.p.n).padStart(2, '0')} · ${c.p.kind}`, x + w - 32, y + 30); g.textAlign = 'left'
+    y += Math.max(120, 10 + c.title.length * TITLE_LH + 44) + 30
     g.fillStyle = C.accent; g.font = `500 22px ${MONO}`; g.fillText('MY PART', ix, y + 10); y += 34
     g.fillStyle = C.muted; g.font = `400 30px ${SANS}`
     for (const l of c.lines) { y += 44; g.fillText(l, ix, y - 10) }

@@ -1,5 +1,5 @@
 import { prepareWithSegments, layoutNextLine, layoutWithLines, clearCache, type LayoutCursor, type PreparedTextWithSegments } from '@chenglou/pretext'
-import { profile, skills, appProjects, webProjects } from '../data'
+import { profile, skills, projects } from '../data'
 import { C, SANS, SERIF, MONO, canvas, paperGrain } from './paint'
 
 /*
@@ -122,7 +122,7 @@ export class CvSheet {
     B.push({ x: qx - 30, y: 1010, w: qw + 60, h: y - 1010 + 10 })
 
     // bottom-right: numbers
-    const stats: [string, string][] = [['5+', 'YEARS'], ['8', 'TEAMS JOINED'], [String(appProjects.length + webProjects.length), 'PROJECTS']]
+    const stats: [string, string][] = [['5+', 'YEARS'], ['8', 'TEAMS JOINED'], [String(projects.length), 'PROJECTS']]
     const sx = 1290
     stats.forEach(([n, l], i) => {
       const x = sx + i * 230

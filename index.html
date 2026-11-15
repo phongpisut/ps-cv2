@@ -17,6 +17,7 @@
     <nav class="nav" aria-label="Sections">
       <a href="#top" data-go="top" class="brand"><span class="mark">PM</span><span class="wide-only">Phongpisut</span></a>
       <a href="#projects" data-go="projects">Projects</a>
+      <a href="#play" data-go="play">Play</a>
       <a href="#optimize" data-go="optimize" class="wide-only">Optimization</a>
       <a href="#physics" data-go="physics">Box3D</a>
       <a href="#webgpu" data-go="webgpu">WebGPU</a>
@@ -30,7 +31,7 @@
         <canvas id="desk" aria-hidden="true"></canvas>
         <div class="loading" id="loading"><span>Setting up the desk…</span></div>
         <div class="hud">
-          <div class="desk-tip" data-show="desk">drag the mug ☕ · drag my name · move your cursor across the page</div>
+          <div class="desk-tip" data-show="desk">drag my name — the skills reflow around it</div>
           <div class="scroll-hint" data-show="desk"><span>Scroll to pick up my phone</span><i>↓</i></div>
           <aside class="cap cap-left off" data-show="phone">
             <p class="eyebrow">(02) Contributions</p>
@@ -44,10 +45,73 @@
     <span id="projects" class="anchor"></span>
 
     <main>
-      <!-- 03 · optimization -->
+      <!-- 03 · play: shared fruit drop over MoQ -->
+      <section id="play" class="section">
+        <header class="head reveal">
+          <p class="eyebrow">(03) Take a break</p>
+          <h2 data-words>Drop a fruit, <em>merge a melon.</em></h2>
+          <p class="sub">One shared box for everyone on this page right now, synced live over MoQ. Two of the same fruit touch, and they merge into the next one.</p>
+        </header>
+        <div class="play">
+          <div class="game reveal">
+            <div class="game-top">
+              <div><span class="k">Score</span><b id="m-score">0</b></div>
+              <div class="r"><span class="k">Best <span id="m-best">0</span> · next</span><b id="m-next" class="emoji">🍒</b></div>
+            </div>
+            <div class="board">
+              <canvas id="melon"></canvas>
+              <div class="over" id="m-over" hidden><p>Game over · <span id="m-over-score">0</span></p><button id="m-again">Play again</button></div>
+            </div>
+            <p class="tiers" id="m-tiers"></p>
+            <p class="hint">Tap to drop · two of a kind merge into the next fruit</p>
+          </div>
+
+          <div class="side">
+            <div class="card live reveal">
+              <p class="status"><span class="dot" id="m-dot"></span><span id="m-status">Connecting to the MoQ relay…</span></p>
+              <div class="me"><span class="emoji big" id="m-mine">🍒</span><div><span class="k">Your random fruit</span><b>You <span id="m-host"></span></b></div></div>
+              <ul class="peers" id="m-peers"></ul>
+              <div class="feed"><span class="k">Big merges</span><ul id="m-feed"><li class="empty">Merges into 🍎 or bigger show up here for everyone.</li></ul></div>
+            </div>
+
+            <div class="explain reveal" style="transition-delay:.1s">
+              <h3>What is MoQ?</h3>
+              <p><b>MoQ (Media over QUIC)</b> is a new protocol for live data, being standardised at the IETF. In the browser it runs over <b>WebTransport</b> (QUIC). Each visitor <b>publishes</b> a broadcast made of named <b>tracks</b>, and a <b>relay</b> forwards every track to whoever <b>subscribes</b>. You send it once and the relay fans it out, so there’s no server code for this game at all.</p>
+              <svg class="diagram" viewBox="0 0 520 200" role="img" aria-label="Your browser publishes state, input and world tracks to a MoQ relay, which forwards them to every other visitor.">
+                <rect x="10" y="60" width="110" height="80" rx="12" class="d-box hot" /><text x="65" y="84" class="d-txt" text-anchor="middle">You</text>
+                <text x="65" y="104" class="d-txt small" text-anchor="middle">state · input</text><text x="65" y="120" class="d-txt small" text-anchor="middle">world</text>
+                <circle cx="260" cy="100" r="44" class="d-box hot" /><text x="260" y="96" class="d-txt" text-anchor="middle">relay</text><text x="260" y="113" class="d-txt small" text-anchor="middle">cdn.moq.dev</text>
+                <rect x="400" y="14" width="110" height="44" rx="10" class="d-box" /><text x="455" y="41" class="d-txt" text-anchor="middle">visitor</text>
+                <rect x="400" y="78" width="110" height="44" rx="10" class="d-box" /><text x="455" y="105" class="d-txt" text-anchor="middle">visitor</text>
+                <rect x="400" y="142" width="110" height="44" rx="10" class="d-box" /><text x="455" y="169" class="d-txt" text-anchor="middle">visitor</text>
+                <path id="mq-in" d="M120 100 H216" class="d-wire hot" />
+                <path id="mq-a" d="M304 92 C 350 80, 360 40, 400 36" class="d-wire hot" />
+                <path id="mq-b" d="M304 100 H400" class="d-wire hot" />
+                <path id="mq-c" d="M304 108 C 350 120, 360 160, 400 164" class="d-wire hot" />
+                <text x="168" y="88" class="d-txt small" text-anchor="middle">publish</text>
+                <text x="352" y="140" class="d-txt small" text-anchor="middle">fan out</text>
+                <circle r="4.5" class="d-dot"><animateMotion dur="1.2s" repeatCount="indefinite"><mpath href="#mq-in" /></animateMotion></circle>
+                <circle r="4.5" class="d-dot"><animateMotion dur="1.2s" begin=".6s" repeatCount="indefinite"><mpath href="#mq-in" /></animateMotion></circle>
+                <circle r="4" class="d-dot back"><animateMotion dur="1.2s" begin=".4s" repeatCount="indefinite"><mpath href="#mq-a" /></animateMotion></circle>
+                <circle r="4" class="d-dot back"><animateMotion dur="1.2s" begin=".4s" repeatCount="indefinite"><mpath href="#mq-b" /></animateMotion></circle>
+                <circle r="4" class="d-dot back"><animateMotion dur="1.2s" begin=".4s" repeatCount="indefinite"><mpath href="#mq-c" /></animateMotion></circle>
+              </svg>
+              <h3>How this game uses it</h3>
+              <ul class="points">
+                <li><b>state</b>: your fruit and score, every 2 seconds, so everyone sees who’s here.</li>
+                <li><b>input</b>: your drops, sent to whoever is running the physics.</li>
+                <li><b>world</b>: the whole board, about 20 times a second, from one visitor (the one who has been here longest with the tab open). If they leave, the next visitor picks up from the newest board.</li>
+              </ul>
+              <p class="note">Needs WebTransport (Chrome, Edge, Firefox). Other browsers show “offline” and play solo.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 · optimization -->
       <section id="optimize" class="section">
         <header class="head reveal">
-          <p class="eyebrow">(03) Optimization</p>
+          <p class="eyebrow">(04) Optimization</p>
           <h2 data-words>Making mobile feel <em>60 FPS.</em></h2>
           <p class="sub">Two tools I reach for when a React Native screen has to stay smooth. They only exist on phones, so instead of a demo, here’s how they work.</p>
         </header>
@@ -138,7 +202,7 @@
       <!-- 04 · Box3D + WASM -->
       <section id="physics" class="section">
         <header class="head reveal">
-          <p class="eyebrow">(04) Box3D × WebAssembly</p>
+          <p class="eyebrow">(05) Box3D × WebAssembly</p>
           <h2 data-words>Real physics, <em>compiled for the web.</em></h2>
         </header>
         <div class="split">
@@ -179,7 +243,7 @@
       <!-- 05 · WebGPU -->
       <section id="webgpu" class="section">
         <header class="head reveal">
-          <p class="eyebrow">(05) WebGPU</p>
+          <p class="eyebrow">(06) WebGPU</p>
           <h2 data-words>131,072 particles, <em>one GPU.</em></h2>
         </header>
         <div class="split flip">
@@ -210,7 +274,7 @@
 
       <!-- 06 · contact -->
       <section id="contact" class="section contact reveal">
-        <p class="eyebrow">(06) Say hello</p>
+        <p class="eyebrow">(07) Say hello</p>
         <h2 data-words>Thanks for <em>reading my CV.</em></h2>
         <p class="sub">If you’re looking for someone to join your team on the next adventure, I’d love to hear from you.</p>
         <a class="mail" id="mail" href="#">email</a>
