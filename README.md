@@ -1,24 +1,26 @@
 # ps-cv2 — Phongpisut Meemuk
 
-Personal CV site. React Native (via react-native-web) + Vite. Melon Merge uses Box2D (planck) and MoQ (`@moq/net`, WebTransport) for live visitors.
+Personal CV site. Plain TypeScript + Vite, three.js, Pretext, Box3D (WASM) and WebGPU.
 
 ```bash
 npm install
 npm run dev        # local dev
 npm run build      # static output in dist/
-npm run icons      # fetch App Store icons into public/icons (needs internet; check the matches)
 ```
 
-## Live visitors (MoQ)
-- Each visitor publishes `ps-cv2/melon/<id>` with a `state` track (JSON per group) and subscribes to the others via relay announcements.
-- Default relay: `https://cdn.moq.dev/anon`. Override with `VITE_MOQ_RELAY=https://your-relay/path` in `.env`.
-- Requires WebTransport (Chrome / Edge / Firefox). Safari shows "offline".
-
-## Design
-- Light "paper" / dark "night paper" themes via CSS variables (`index.html`), toggle in the nav, `?theme=light|dark` to force.
-- Hero (`src/SkillField.tsx`): my skills as running text laid out with [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per line around obstacles — the name's glyph shapes, foreground cards (`<Obstacle>`), the pointer lens and a bouncing melon. Drag the name; the text reflows live.
-- Motion: CSS entrance (`.rise`), scroll reveals and word-by-word headings, count-up stats, scroll progress bar, timeline line that draws on scroll, 3D card tilt (`src/motion.tsx`), fingerprint draw-on, marquee. All respect `prefers-reduced-motion`.
+## How the page works
+- **Desk** (`src/desk/`): a three.js scene seen top-down on landing. The CV sheet is a live canvas texture:
+  my skills run as text laid out with [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per
+  line around my name's glyphs, the text blocks, the cursor lens and the footprints of the mug and ID card. Drag the
+  mug or the name and the text reflows. The page scroll drives the camera down to the phone (`#stage` is 640vh with
+  a sticky canvas); the phone screen unlocks into the "Contributions" list, which scrolls with the page.
+- **Optimization**: explainers for React Native Skia and Nitro Modules (animated SVG diagrams, a live Canvas 2D chart).
+- **Box3D × WebAssembly** (`src/sections/physics.ts`): `box3d-wasm/standard` (no threads, so no COOP/COEP headers
+  needed on GitHub Pages) stepping a world of boxes rendered with three.js instancing. HUD numbers are measured live.
+- **WebGPU** (`src/sections/webgpu.ts`): raw WebGPU, 131,072 particles moved by a WGSL compute pass and drawn from the
+  same storage buffer. Falls back to a message where `navigator.gpu` is missing.
+- Demos start when scrolled near and pause when off screen. Motion respects `prefers-reduced-motion`.
 
 ## Deploy
 Every push to `main` builds the site and publishes `dist/` to the `gh-pages` branch (`.github/workflows/deploy.yml`).
-Live at **https://phongpisut.github.io/ps-cv2/** (Settings → Pages → Source: *Deploy from a branch* → `gh-pages` / root).
+Live at **https://phongpisut.github.io/ps-cv2/**.

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 export default defineConfig({
-  plugins: [react()],
   base: './',
-  resolve: { alias: { 'react-native': 'react-native-web' } },
+  optimizeDeps: { exclude: ['box3d-wasm'] }, // keep its new URL('box3d.wasm', import.meta.url) intact
+  build: { target: 'es2022', chunkSizeWarningLimit: 1200 },
 })
