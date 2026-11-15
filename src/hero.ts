@@ -64,6 +64,41 @@ function paintName(first: string, last: string, size: number): Art {
   return { canvas: cv, rows, w, h, pad }
 }
 
+let splash = ''
+/** A black ink splash on transparent: a wobbly drop, tapered streaks and satellite droplets. */
+function inkSplash() {
+  if (splash) return splash
+  const S = 1024, c = S / 2
+  const cv = document.createElement('canvas'); cv.width = cv.height = S
+  const g = cv.getContext('2d')!
+  let seed = 7
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296 }
+  const ph = [rnd() * 6, rnd() * 6, rnd() * 6, rnd() * 6]
+  const R = (a: number) => 362 * (1 + 0.045 * Math.sin(3 * a + ph[0]) + 0.03 * Math.sin(5 * a + ph[1]) + 0.02 * Math.sin(11 * a + ph[2]) + 0.012 * Math.sin(23 * a + ph[3]))
+  g.fillStyle = '#000'
+  g.beginPath()
+  for (let i = 0; i <= 360; i++) { const a = (i / 360) * Math.PI * 2, r = R(a); i ? g.lineTo(c + Math.cos(a) * r, c + Math.sin(a) * r) : g.moveTo(c + Math.cos(a) * r, c + Math.sin(a) * r) }
+  g.fill()
+  // tapered streaks flung out of the drop
+  for (let i = 0; i < 14; i++) {
+    const a = rnd() * Math.PI * 2, r0 = R(a) - 30, len = 40 + rnd() * 110, w = 10 + rnd() * 26
+    const nx = Math.cos(a), ny = Math.sin(a), px = -ny, py = nx
+    g.beginPath()
+    g.moveTo(c + nx * r0 + px * w, c + ny * r0 + py * w)
+    g.quadraticCurveTo(c + nx * (r0 + len * 0.6) + px * w * 0.35, c + ny * (r0 + len * 0.6) + py * w * 0.35, c + nx * (r0 + len), c + ny * (r0 + len))
+    g.quadraticCurveTo(c + nx * (r0 + len * 0.6) - px * w * 0.35, c + ny * (r0 + len * 0.6) - py * w * 0.35, c + nx * r0 - px * w, c + ny * r0 - py * w)
+    g.fill()
+    g.beginPath(); g.arc(c + nx * (r0 + len + 8 + rnd() * 14), c + ny * (r0 + len + 8 + rnd() * 14), 3 + rnd() * 7, 0, Math.PI * 2); g.fill()
+  }
+  // satellite droplets
+  for (let i = 0; i < 46; i++) {
+    const a = rnd() * Math.PI * 2, r = R(a) + 24 + Math.pow(rnd(), 1.6) * 120
+    g.beginPath(); g.arc(c + Math.cos(a) * r, c + Math.sin(a) * r, 2 + Math.pow(rnd(), 2) * 16, 0, Math.PI * 2); g.fill()
+  }
+  splash = cv.toDataURL('image/png')
+  return splash
+}
+
 export class Hero {
   private ctx: CanvasRenderingContext2D
   private flow?: PreparedTextWithSegments
@@ -95,13 +130,25 @@ export class Hero {
     this.resize()
   }
 
-  /** 0 = gone (scrolled to the desk), 1 = fully shown. */
-  setOpacity(o: number) {
-    this.root.style.opacity = String(o)
-    this.root.style.visibility = o <= 0.001 ? 'hidden' : 'visible'
-    this.root.style.transform = `scale(${1 + (1 - o) * 0.04})`
+  /**
+   * Scroll transition: 0 = page fully covered, 1 = gone. The dark page pulls back into an
+   * ink drop (with splatter) that shrinks to nothing, revealing the desk underneath.
+   * The mask is an ink-splash image painted once; each frame only changes its size.
+   */
+  setReveal(p: number) {
+    const st = this.root.style as CSSStyleDeclaration & { webkitMaskImage: string; webkitMaskSize: string }
+    const gone = p >= 0.999
+    st.visibility = gone ? 'hidden' : 'visible'
+    if (p <= 0.001) { st.maskImage = st.webkitMaskImage = 'none' } // no mask cost while idle on the landing
+    else if (!gone) {
+      const img = `url(${inkSplash()})`
+      if (st.maskImage !== img) st.maskImage = st.webkitMaskImage = img
+      const diag = Math.hypot(this.root.clientWidth, this.root.clientHeight)
+      const size = diag * 1.5 * Math.pow(1 - p, 1.35)
+      st.maskSize = st.webkitMaskSize = `${size}px ${size}px`
+    }
     const was = this.active
-    this.active = o > 0.001
+    this.active = !gone
     if (this.active && !was) this.kick()
   }
 

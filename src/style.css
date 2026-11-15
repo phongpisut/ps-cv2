@@ -211,7 +211,8 @@ main { position: relative; z-index: 1; background: var(--bg); background-image: 
 /* ---------- landing: Pretext overlay ---------- */
 .hero {
   position: absolute; inset: 0; z-index: 5; background: #0d0907; color: #f3ead9; transform-origin: 50% 40%;
-  touch-action: pan-y; will-change: opacity, transform;
+  touch-action: pan-y;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: 50% 50%; mask-position: 50% 50%;
 }
 .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .hero-fg { position: relative; height: 100%; max-width: 1160px; margin: 0 auto; padding: 120px 20px 120px; display: flex; align-items: center; gap: 48px; pointer-events: none; }

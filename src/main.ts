@@ -93,7 +93,7 @@ function onScroll() {
   bar.style.setProperty('--p', String(Math.min(1, scrollY / Math.max(1, max))))
   const s = stageProgress()
   desk.setProgress(s)
-  hero.setOpacity(1 - smoothstep(0, 0.07, s)) // the Pretext overlay fades away to reveal the desk
+  hero.setReveal(smoothstep(0, 0.08, s)) // the Pretext overlay pulls back into an ink drop to reveal the desk
   const here = s < 0.07 ? 'top' : s <= 1 ? 'projects'
     : ['contact', 'webgpu', 'physics', 'optimize', 'play'].find((id) => $('#' + id).getBoundingClientRect().top < innerHeight * 0.45) ?? 'projects'
   navLinks.forEach((a) => a.classList.toggle('on', a.dataset.go === here))

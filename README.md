@@ -12,7 +12,7 @@ npm run build      # static output in dist/
 - **Landing** (`src/hero.ts`): a full-screen 2D overlay that fully covers the desk on a dark background. My skills run as text laid out with
   [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per line around my name's glyphs, the
   foreground blocks (`[data-obstacle]`) and the cursor lens; drag the name and the text reflows. Drawn on demand only.
-  Scrolling fades it out (and back in when you scroll up) to reveal the desk.
+  Scrolling pulls it back into a shrinking ink splash (a CSS mask painted once) to reveal the desk; scrolling up spreads it back.
 - **Desk** (`src/desk/`): a three.js desk seen top-down (journey notepad, education card, ID badge, mug, pencil,
   phone). The page scroll drives the camera down to the phone (`#stage` is 760vh with a sticky canvas); the phone
   screen unlocks into the "Contributions" list, which scrolls with the page.
