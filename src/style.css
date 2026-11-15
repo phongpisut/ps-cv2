@@ -211,7 +211,6 @@ main { position: relative; z-index: 1; background: var(--bg); background-image: 
 /* ---------- landing: Pretext overlay ---------- */
 .hero {
   position: absolute; inset: 0; z-index: 5; background: #0d0907; color: #f3ead9; transform-origin: 50% 40%;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 74%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 74%, transparent 100%);
   touch-action: pan-y; will-change: opacity, transform;
 }
 .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
@@ -236,12 +235,11 @@ main { position: relative; z-index: 1; background: var(--bg); background-image: 
 .nums div { display: flex; flex-direction: column; }
 .nums b { font-size: 32px; line-height: 1.1; color: #fff6ea; letter-spacing: -1px; }
 .nums span { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #8f7f6c; }
-.hero-scroll { position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #cbbba7; pointer-events: none; }
+.hero-scroll { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #cbbba7; pointer-events: none; }
 .hero-scroll i { font-style: normal; font-size: 18px; animation: bob 1.6s ease-in-out infinite; }
 @media (max-width: 820px) {
   .hero-fg { flex-direction: column; align-items: stretch; justify-content: center; padding: 96px 20px 110px; gap: 22px; }
   .name-slot { height: 136px; }
   .tagline { font-size: 17px; }
   .hero-card { display: none; }
-  .hero-scroll { bottom: 7%; }
 }

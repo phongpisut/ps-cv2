@@ -9,7 +9,7 @@ npm run build      # static output in dist/
 ```
 
 ## How the page works
-- **Landing** (`src/hero.ts`): a full-screen 2D overlay on a dark background. My skills run as text laid out with
+- **Landing** (`src/hero.ts`): a full-screen 2D overlay that fully covers the desk on a dark background. My skills run as text laid out with
   [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per line around my name's glyphs, the
   foreground blocks (`[data-obstacle]`) and the cursor lens; drag the name and the text reflows. Drawn on demand only.
   Scrolling fades it out (and back in when you scroll up) to reveal the desk.
