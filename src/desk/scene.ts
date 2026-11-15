@@ -1,44 +1,40 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { CvSheet, SHEET_W, SHEET_H } from './sheet'
 import { PhoneScreen } from './phone'
 import { wood, notepad, indexCard, idCard } from './paint'
 
 /*
- * The desk. Seen from straight above on landing: my CV sheet (Pretext skills flowing
- * around my name and the coffee mug), a notepad with my journey, an index card, an ID
- * badge, sticky notes, a pencil and my phone. Scrolling flies the camera down to the
+ * The desk, revealed when the Pretext overlay fades out: my journey notepad, education
+ * card, ID badge, mug, pencil and phone, centred. Scrolling flies the camera down to the
  * phone, which unlocks into the list of projects I've contributed to.
+ * Rendered on demand only: nothing is drawn while nothing moves.
  */
 
-const SW = 1.6, SH = SW * SHEET_H / SHEET_W // sheet size in desk units
 const PHONE = { w: 0.4, h: 0.82, t: 0.034 }
 
 type P = { x: number; z: number; r: number }
 type Layout = {
-  sheet: P; pad: P; card: P; id: P; phone: P; pencil: P
-  mug: [number, number] // decoration only, kept off the sheet
+  pad: P; card: P; id: P; phone: P; pencil: P
+  mug: [number, number]
   frame: { x0: number; x1: number; z0: number; z1: number } // landing framing
 }
 const WIDE: Layout = {
-  sheet: { x: -0.35, z: 0, r: 0.012 },
-  pad: { x: 0.98, z: -0.1, r: -0.035 },
-  card: { x: 1.0, z: 0.56, r: 0.05 },
-  phone: { x: 1.72, z: 0.08, r: 0.07 },
-  id: { x: 1.47, z: 0.69, r: 0.1 },
-  pencil: { x: 0.55, z: 0.66, r: 0.35 },
-  mug: [0.56, -0.5],
-  frame: { x0: -1.22, x1: 1.96, z0: -0.62, z1: 0.66 },
+  pad: { x: -0.55, z: -0.08, r: -0.035 },
+  card: { x: -0.5, z: 0.62, r: 0.05 },
+  id: { x: 0.08, z: 0.66, r: 0.09 },
+  phone: { x: 0.4, z: 0.0, r: 0.07 },
+  pencil: { x: 0.92, z: 0.45, r: 1.15 },
+  mug: [1.0, -0.3],
+  frame: { x0: -1.0, x1: 1.25, z0: -0.62, z1: 0.86 },
 }
 const TALL: Layout = {
-  sheet: { x: 0, z: -0.62, r: 0.01 },
-  pad: { x: -0.37, z: 0.5, r: -0.04 },
-  card: { x: -0.3, z: 1.2, r: 0.05 },
-  phone: { x: 0.4, z: 0.53, r: 0.06 },
-  id: { x: 0.42, z: 1.12, r: 0.08 },
-  pencil: { x: 0.12, z: 0.0, r: 0.12 },
-  mug: [0.66, 0.03],
-  frame: { x0: -0.84, x1: 0.84, z0: -1.3, z1: 1.3 },
+  pad: { x: -0.33, z: -0.5, r: -0.04 },
+  phone: { x: 0.4, z: -0.45, r: 0.06 },
+  card: { x: -0.3, z: 0.26, r: 0.05 },
+  id: { x: 0.36, z: 0.3, r: 0.08 },
+  pencil: { x: -0.22, z: 0.66, r: 0.1 },
+  mug: [0.44, 0.68],
+  frame: { x0: -0.72, x1: 0.74, z0: -1.0, z1: 0.84 },
 }
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
@@ -56,26 +52,21 @@ function flat(w: number, h: number, map: THREE.Texture, y: number) {
   return m
 }
 
-export type DeskState = { progress: number; active: number; phase: 'desk' | 'zoom' | 'phone' } // active = workplace number
+export type DeskState = { progress: number; active: number; phase: 'hero' | 'desk' | 'zoom' | 'phone' } // active = workplace number
 
 export class Desk {
   private renderer: THREE.WebGLRenderer
   private scene = new THREE.Scene()
   private camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50)
-  private sheet = new CvSheet()
   private screen = new PhoneScreen()
-  private sheetTex!: THREE.CanvasTexture
   private screenTex!: THREE.CanvasTexture
   private objs: Record<string, THREE.Object3D> = {}
   private layout = WIDE
   private mug = new THREE.Group()
   private phone = new THREE.Group()
-  private ray = new THREE.Raycaster()
-  private ndc = new THREE.Vector2()
-  private drag: null | { grab: { x: number; y: number } } = null
+  private placed = false
   private target = 0 // scroll progress through the stage (0..1)
   private shown = 0 // smoothed
-  private sheetDirty = true
   private lastScreen = ''
   private needsRender = true // render on demand: only when something changed
   private lastT = -1
@@ -95,8 +86,8 @@ export class Desk {
 
   /** Paint textures that need web fonts, then start. */
   ready() {
-    this.sheet.init(); this.screen.init()
-    this.sheetDirty = true; this.lastScreen = ''
+    this.screen.init()
+    this.lastScreen = ''
     this.resize()
   }
 
@@ -118,10 +109,6 @@ export class Desk {
     const desk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.12, 6), new THREE.MeshStandardMaterial({ map: wt, roughness: 0.72 }))
     desk.position.y = -0.06; desk.receiveShadow = true
     s.add(desk)
-
-    // CV sheet (live Pretext texture)
-    this.sheetTex = tex(this.sheet.canvas, r)
-    this.objs.sheet = flat(SW, SH, this.sheetTex, 0.001)
 
     // notepad: a block of paper + the top page + spiral rings
     const pad = new THREE.Group()
@@ -184,19 +171,15 @@ export class Desk {
     screen.rotation.x = -Math.PI / 2; screen.position.y = PHONE.t + 0.0006
     this.phone.add(body, screen)
 
-    s.add(this.objs.sheet, pad, this.objs.card, id, pencil, this.mug, this.phone)
+    s.add(pad, this.objs.card, id, pencil, this.mug, this.phone)
   }
 
   private place(l: Layout) {
     this.layout = l
     const put = (o: THREE.Object3D, p: P) => { o.position.x = p.x; o.position.z = p.z; o.rotation.y = -p.r }
-    put(this.objs.sheet, l.sheet)
-    // the sheet plane is rotated -90° about X, so its spin goes on Z
-    this.objs.sheet.rotation.set(-Math.PI / 2, 0, -l.sheet.r)
     put(this.objs.pad, l.pad); put(this.objs.id, l.id); put(this.objs.pencil, l.pencil)
     this.objs.card.position.set(l.card.x, 0.0012, l.card.z); this.objs.card.rotation.set(-Math.PI / 2, 0, -l.card.r)
     this.mug.position.set(l.mug[0], 0.001, l.mug[1])
-    this.sheetDirty = true
     this.renderer.shadowMap.needsUpdate = true
     this.needsRender = true
   }
@@ -212,7 +195,7 @@ export class Desk {
     const a = this.fit((f.x0 + f.x1) / 2, (f.z0 + f.z1) / 2, f.x1 - f.x0, f.z1 - f.z0)
     const p = this.layout.phone
     const b = this.fit(p.x, p.z, PHONE.w * 1.25, PHONE.h * 1.24)
-    const t = smooth(0.06, 0.4, s)
+    const t = smooth(0.16, 0.45, s)
     const cx = lerp(a.cx, b.cx, t), cz = lerp(a.cz, b.cz, t), d = lerp(a.d, b.d, t)
     const tilt = Math.sin(Math.PI * t)
     this.camera.position.set(cx - tilt * d * 0.12, d * (1 - tilt * 0.08) + PHONE.t * t, cz + tilt * d * 0.42)
@@ -236,7 +219,7 @@ export class Desk {
     this.renderer.shadowMap.needsUpdate = true
     this.needsRender = true
     const want = w / h < 0.85 ? TALL : WIDE
-    if (want !== this.layout || !this.objs.sheet.userData.placed) { this.place(want); this.objs.sheet.userData.placed = true }
+    if (want !== this.layout || !this.placed) { this.place(want); this.placed = true }
   }
 
   start() {
@@ -262,16 +245,8 @@ export class Desk {
       if (t !== this.lastT) { this.lastT = t; this.renderer.shadowMap.needsUpdate = true } // the phone moved
     }
 
-    if (this.sheet.step(dt)) this.sheetDirty = true
-    if (this.sheetDirty) {
-      this.sheet.draw([], [])
-      this.sheetTex.needsUpdate = true
-      this.sheetDirty = false
-      draw = true
-    }
-
-    const unlock = smooth(0.37, 0.46, s)
-    const scroll = Math.min(1, Math.max(0, (s - 0.47) / (0.95 - 0.47)))
+    const unlock = smooth(0.43, 0.52, s)
+    const scroll = Math.min(1, Math.max(0, (s - 0.53) / (0.96 - 0.53)))
     const now = new Date()
     const key = `${unlock.toFixed(3)}|${scroll.toFixed(4)}|${now.getMinutes()}`
     if (key !== this.lastScreen) {
@@ -282,40 +257,6 @@ export class Desk {
     }
 
     if (draw) { this.renderer.render(this.scene, this.camera); this.needsRender = false }
-    this.onFrame?.({ progress: s, active: this.screen.activeN, phase: s < 0.06 ? 'desk' : s < 0.42 ? 'zoom' : 'phone' })
+    this.onFrame?.({ progress: s, active: this.screen.activeN, phase: s < 0.07 ? 'hero' : s < 0.16 ? 'desk' : s < 0.47 ? 'zoom' : 'phone' })
   }
-
-  // --- pointer: drag my name across the sheet ------------------------------------------
-  private pick(e: PointerEvent) {
-    const r = this.canvas.getBoundingClientRect()
-    this.ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1)
-    this.ray.setFromCamera(this.ndc, this.camera)
-  }
-  private sheetPx(): [number, number] | null {
-    const hit = this.ray.intersectObject(this.objs.sheet)[0]
-    if (!hit?.uv) return null
-    return [hit.uv.x * SHEET_W, (1 - hit.uv.y) * SHEET_H]
-  }
-  private interactive() { return this.shown < 0.05 }
-
-  pointerMove(e: PointerEvent) {
-    if (!this.interactive() && !this.drag) return
-    this.pick(e)
-    const px = this.sheetPx()
-    if (this.drag && px) { this.sheet.dragTo(px[0], px[1], this.drag.grab); this.sheetDirty = true } // only redraw the sheet while dragging
-    this.canvas.style.cursor = this.drag ? 'grabbing' : px && this.sheet.hitName(px[0], px[1]) ? 'grab' : ''
-  }
-  pointerDown(e: PointerEvent) {
-    if (!this.interactive()) return false
-    this.pick(e)
-    const px = this.sheetPx()
-    if (px && this.sheet.hitName(px[0], px[1])) {
-      this.drag = { grab: this.sheet.grabPoint(px[0], px[1]) }
-      this.sheet.dragging = true
-      return true
-    }
-    return false
-  }
-  pointerUp() { this.drag = null; this.sheet.dragging = false; this.canvas.style.cursor = '' }
-  pointerLeave() { if (!this.drag) this.canvas.style.cursor = '' }
 }

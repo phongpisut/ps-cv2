@@ -9,11 +9,13 @@ npm run build      # static output in dist/
 ```
 
 ## How the page works
-- **Desk** (`src/desk/`): a three.js scene seen top-down on landing. The CV sheet is a live canvas texture:
-  my skills run as text laid out with [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per
-  line around my name's glyphs and the text blocks. Drag the
-  name and the text reflows. The page scroll drives the camera down to the phone (`#stage` is 640vh with
-  a sticky canvas); the phone screen unlocks into the "Contributions" list, which scrolls with the page.
+- **Landing** (`src/hero.ts`): a full-screen 2D overlay on a dark background. My skills run as text laid out with
+  [Pretext](https://github.com/chenglou/pretext) (`layoutNextLine`), split per line around my name's glyphs, the
+  foreground blocks (`[data-obstacle]`) and the cursor lens; drag the name and the text reflows. Drawn on demand only.
+  Scrolling fades it out (and back in when you scroll up) to reveal the desk.
+- **Desk** (`src/desk/`): a three.js desk seen top-down (journey notepad, education card, ID badge, mug, pencil,
+  phone). The page scroll drives the camera down to the phone (`#stage` is 760vh with a sticky canvas); the phone
+  screen unlocks into the "Contributions" list, which scrolls with the page.
 - **Play** (`src/game/`): the shared fruit-drop game, synced over MoQ (`@moq/net`, free relay `cdn.moq.dev`, WebTransport).
   Each visitor publishes `state` / `input` / `world` tracks; the oldest visible visitor runs the planck physics and
   streams the board. `?room=name` for a private room; `VITE_MOQ_RELAY` to use another relay.

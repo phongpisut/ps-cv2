@@ -1,5 +1,6 @@
 import './style.css'
 import { Desk } from './desk/scene'
+import { Hero } from './hero'
 import { startChart } from './sections/chart'
 import { profile, projects, projectGroups, jobs, skills, education, internship, languages } from './data'
 
@@ -13,7 +14,7 @@ mail.href = `mailto:${profile.email}`; mail.textContent = profile.email + ' ↗'
 
 $('#proj-list').innerHTML = projectGroups.map((g) => `<li data-n="${g.n}"><div><b>${g.names.join(' & ')}</b><br><span>${g.client}</span></div></li>`).join('')
 $('#cv-text').innerHTML = `
-  <h1>${profile.name}</h1><p>${profile.title}, ${profile.location}. ${profile.email}</p>
+  <p>${profile.name}</p><p>${profile.title}, ${profile.location}. ${profile.email}</p>
   ${profile.bio.map((b) => `<p>${b}</p>`).join('')}
   <h2>Projects I've contributed to</h2><ul>${projects.map((p) => `<li>${p.name} (with ${p.client}): ${p.text}</li>`).join('')}</ul>
   <h2>Journey</h2><ul>${jobs.map((j) => `<li>${j.period}: ${j.role}, ${j.company} (${j.type})</li>`).join('')}</ul>
@@ -49,6 +50,11 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
 const stage = $('#stage')
 const deskCanvas = $<HTMLCanvasElement>('#desk')
 const desk = new Desk(deskCanvas)
+const [first, last] = profile.name.split(' ')
+const hero = new Hero($('#hero'), $<HTMLCanvasElement>('#hero-canvas'), Object.values(skills).flat(), first, last + '.', () => (innerWidth > 820 ? 124 : 66))
+const heroMail = $<HTMLAnchorElement>('#hero-mail'); heroMail.href = `mailto:${profile.email}`
+$('#hero-count').textContent = String(projects.length)
+const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
 const shows = [...document.querySelectorAll<HTMLElement>('.hud [data-show]')]
 const items = [...document.querySelectorAll<HTMLElement>('#proj-list li')]
 let lastActive = -1, lastPhase = ''
@@ -69,17 +75,13 @@ Promise.all([
   document.fonts.load('italic 400 100px "Instrument Serif"'), document.fonts.load('400 40px "Instrument Serif"'),
   document.fonts.load('500 30px "Geist Mono"'),
 ]).catch(() => {}).then(() => {
+  hero.init()
   desk.ready()
   desk.setProgress(stageProgress())
   desk.start()
   $('#loading').classList.add('done')
 })
 
-deskCanvas.addEventListener('pointermove', (e) => desk.pointerMove(e))
-deskCanvas.addEventListener('pointerdown', (e) => { if (desk.pointerDown(e)) { deskCanvas.setPointerCapture(e.pointerId); e.preventDefault() } })
-deskCanvas.addEventListener('pointerup', () => desk.pointerUp())
-deskCanvas.addEventListener('pointercancel', () => desk.pointerUp())
-deskCanvas.addEventListener('pointerleave', () => desk.pointerLeave())
 new ResizeObserver(() => desk.resize()).observe(deskCanvas)
 new IntersectionObserver(([e]) => (e.isIntersecting ? desk.start() : desk.stop())).observe(stage)
 
@@ -91,7 +93,8 @@ function onScroll() {
   bar.style.setProperty('--p', String(Math.min(1, scrollY / Math.max(1, max))))
   const s = stageProgress()
   desk.setProgress(s)
-  const here = s < 0.06 ? 'top' : s <= 1 ? 'projects'
+  hero.setOpacity(1 - smoothstep(0, 0.07, s)) // the Pretext overlay fades away to reveal the desk
+  const here = s < 0.07 ? 'top' : s <= 1 ? 'projects'
     : ['contact', 'webgpu', 'physics', 'optimize', 'play'].find((id) => $('#' + id).getBoundingClientRect().top < innerHeight * 0.45) ?? 'projects'
   navLinks.forEach((a) => a.classList.toggle('on', a.dataset.go === here))
 }
@@ -103,9 +106,11 @@ const stageY = (p: number) => stage.offsetTop + p * (stage.offsetHeight - innerH
 navLinks.forEach((a) => a.addEventListener('click', (e) => {
   e.preventDefault()
   const go = a.dataset.go!
-  const y = go === 'top' ? 0 : go === 'projects' ? stageY(0.5) : $('#' + go).getBoundingClientRect().top + scrollY + 40
+  const y = go === 'top' ? 0 : go === 'projects' ? stageY(0.62) : $('#' + go).getBoundingClientRect().top + scrollY + 40
   scrollTo({ top: y, behavior: 'smooth' })
 }))
+
+document.querySelector('[data-go="desk"]')?.addEventListener('click', (e) => { e.preventDefault(); scrollTo({ top: stageY(0.12), behavior: 'smooth' }) })
 
 /* ---------- lazy demos: start when near, pause when away ---------- */
 function whenVisible(el: Element, on: () => void, off: () => void, margin = '200px') {
