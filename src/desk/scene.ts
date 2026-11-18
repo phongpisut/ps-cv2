@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
-import { PhoneScreen } from './phone'
+import { PhoneScreen, SCREEN_W, SCREEN_H, HEADER_H, PAD_X, SCREEN_PLANE } from './phone'
 import { wood, notepad, indexCard, idCard } from './paint'
 
 /*
@@ -59,7 +59,12 @@ export class Desk {
   private scene = new THREE.Scene()
   private camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50)
   private screen = new PhoneScreen()
-  private screenTex!: THREE.CanvasTexture
+  private scr = new THREE.Group() // phone screen layers (see phone.ts)
+  private layers: Record<'content' | 'mark' | 'header' | 'chrome' | 'lock' | 'frame', THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>> = {} as never
+  private texs: Record<string, THREE.CanvasTexture> = {}
+  private lastMinute = -1
+  private markY = 0
+  private markH = 0
   private objs: Record<string, THREE.Object3D> = {}
   private layout = WIDE
   private mug = new THREE.Group()
@@ -86,7 +91,16 @@ export class Desk {
 
   /** Paint textures that need web fonts, then start. */
   ready() {
-    this.screen.init()
+    const now = new Date()
+    this.screen.init(now)
+    this.lastMinute = now.getMinutes()
+    const r = this.renderer, L = this.layers
+    for (const k of ['content', 'header', 'chrome', 'lock', 'frame'] as const) {
+      this.texs[k]?.dispose()
+      const t = this.texs[k] = tex(this.screen[k], r)
+      L[k].material.map = t; L[k].material.needsUpdate = true
+    }
+    this.scr.visible = true
     this.lastScreen = ''
     this.resize()
   }
@@ -166,10 +180,20 @@ export class Desk {
     // phone
     const body = new THREE.Mesh(new RoundedBoxGeometry(PHONE.w, PHONE.t, PHONE.h, 5, 0.05), new THREE.MeshStandardMaterial({ color: '#1c1c1f', metalness: 0.4, roughness: 0.35 }))
     body.position.y = PHONE.t / 2; body.castShadow = true
-    this.screenTex = tex(this.screen.canvas, r)
-    const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.372, 0.805), new THREE.MeshBasicMaterial({ map: this.screenTex, transparent: true, toneMapped: false }))
-    screen.rotation.x = -Math.PI / 2; screen.position.y = PHONE.t + 0.0006
-    this.phone.add(body, screen)
+    // screen: stacked layers, lowest first (content scrolls by texture offset only)
+    this.scr.rotation.x = -Math.PI / 2; this.scr.position.y = PHONE.t + 0.0006; this.scr.visible = false
+    const { w: PW, h: PH } = SCREEN_PLANE
+    const order = ['content', 'mark', 'header', 'chrome', 'lock', 'frame'] as const
+    order.forEach((k, i) => {
+      const mat = new THREE.MeshBasicMaterial({ transparent: k !== 'content', toneMapped: false, depthWrite: false, color: k === 'mark' ? '#d9502a' : '#ffffff' })
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), mat)
+      m.position.z = i * 0.0002; m.renderOrder = 10 + i
+      this.layers[k] = m; this.scr.add(m)
+    })
+    const hh = (HEADER_H / SCREEN_H) * PH
+    this.layers.header.scale.y = HEADER_H / SCREEN_H; this.layers.header.position.y = PH / 2 - hh / 2
+    this.layers.mark.scale.x = 8 / SCREEN_W; this.layers.mark.position.x = ((PAD_X - 20) / SCREEN_W - 0.5) * PW
+    this.phone.add(body, this.scr)
 
     s.add(pad, this.objs.card, id, pencil, this.mug, this.phone)
   }
@@ -248,11 +272,28 @@ export class Desk {
     const unlock = smooth(0.43, 0.52, s)
     const scroll = Math.min(1, Math.max(0, (s - 0.53) / (0.96 - 0.53)))
     const now = new Date()
-    const key = `${unlock.toFixed(3)}|${scroll.toFixed(4)}|${now.getMinutes()}`
-    if (key !== this.lastScreen) {
-      this.screen.draw(unlock, scroll, now)
-      this.screenTex.needsUpdate = true
+    if (this.scr.visible && now.getMinutes() !== this.lastMinute) { // the clock is the only thing that repaints
+      this.lastMinute = now.getMinutes()
+      this.screen.minute(now)
+      this.texs.chrome.needsUpdate = true; this.texs.lock.needsUpdate = true
+      draw = true
+    }
+    const key = `${unlock.toFixed(3)}|${scroll.toFixed(4)}`
+    if (key !== this.lastScreen && this.scr.visible) {
       this.lastScreen = key
+      const st = this.screen.state(scroll), L = this.layers, PH = SCREEN_PLANE.h
+      const ct = this.texs.content
+      ct.repeat.y = st.vRepeat; ct.offset.y = st.v0 // scrolling = moving the texture window, nothing is redrawn
+      L.header.material.opacity = st.header; L.header.visible = st.header > 0.01
+      L.lock.material.opacity = 1 - unlock * unlock; L.lock.visible = unlock < 0.999
+      L.lock.scale.setScalar(1 - unlock * 0.08)
+      L.chrome.visible = L.content.visible = unlock > 0.001
+      if (st.mark) {
+        const top = Math.max(st.mark.y - st.mark.h / 2, HEADER_H + 10), bot = Math.min(st.mark.y + st.mark.h / 2, SCREEN_H - 40)
+        this.markH = Math.max(0, bot - top); this.markY = (top + bot) / 2
+      }
+      L.mark.visible = unlock > 0.99 && this.markH > 20
+      L.mark.scale.y = this.markH / SCREEN_H; L.mark.position.y = (0.5 - this.markY / SCREEN_H) * PH
       draw = true
     }
 
